@@ -1,0 +1,236 @@
+<html>
+<head>
+<title>Computer Vision Project</title>
+<link href='http://fonts.googleapis.com/css?family=Nunito:300|Crimson+Text|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" title="Default" href="styles/github.css">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>  
+<script type="text/javascript" src="http://latex.codecogs.com/latexit.js"></script>
+<link rel="stylesheet" href="highlighting/styles/default.css">
+<script src="highlighting/highlight.pack.js"></script>
+
+<style type="text/css">
+body {
+	margin: 0px;
+	width: 100%;
+	font-family: 'Crimson Text', serif;
+	font-size: 20px;
+	background: #fcfcfc;
+}
+h1 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 28px;
+	margin: 25px 0px 0px 0px;
+	text-transform: lowercase;
+
+}
+
+h2 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 32px;
+	margin: 15px 0px 35px 0px;
+	color: #333;	
+	word-spacing: 3px;
+}
+
+h3 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 26px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+h4 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 22px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+
+h5 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 18px;
+	margin: 10px 0px 10px 0px;
+	color: #111;
+	word-spacing: 2px;
+}
+
+p, li {
+	color: #444;
+}
+
+a {
+	color: #DE3737;
+}
+
+.container {
+	margin: 0px auto 0px auto;
+	width: 960px;
+}
+
+#header {
+	background: #333;
+	width: 100%;
+}
+
+#headersub {
+	color: #ccc;
+	width: 960px;
+	margin: 0px auto 0px auto;
+	padding: 20px 0px 20px 0px;
+}
+
+.chart {
+	width: 480px;
+}
+.lol {
+	font-size: 16px;
+	color: #888;
+	font-style: italic;
+}
+.sep {
+	height: 1px;
+	width: 100%;
+	background: #999;
+	margin: 20px 0px 20px 0px;
+}
+.footer{
+	font-size: 16px;
+}
+.latex {
+	width: 100%;
+}
+
+.latex img {
+	display: block;
+	margin: 0px auto 0px auto;
+}
+
+pre {
+	font-family: 'Droid Sans Mono';
+	font-size: 14px;
+}
+
+td img {
+  vertical-align: middle;
+}
+
+#contents a {
+}
+</style>
+<script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+</script>
+</head>
+<body>
+<div id="header" >
+<div id="headersub">
+<h1><span style="color: #DE3737">Anastasia Zhurikhina</span></h1>
+</div>
+</div>
+<div class="container">
+
+<h2>Project 2: Local Feature Matching</h2>
+
+<div style="float: right; padding: 20px">
+<img src="points_nd.png" style="height:40%;" />
+<p style="font-size: 14px">Fig.1. Potential points of interest, extracted from thresholded cornerness matrix.</p>
+</div>
+
+<p> Local feature matching and object recognition are important problems of image analysis applied across multiple fields in science.
+For this project we had to create a pipeline for local feature matching by implementing the following steps:	</p>
+
+<ol>
+<li>Points of interest detection with Harris corner detector</li>
+<li>Keypoints extraction by applying ANMS to points obtained at step 1</li>
+<li>Features extraction for every keypoint using SIFT</li>
+<li>Two images features matching by shortest distance</li>
+<li>Matches extraction by confidence</li>
+</ol>
+
+
+<div style="clear:both">
+<h2>Main steps description and discussion</h2>
+<h3>Harris Corner Detector</h3>
+<p> For Harris Corner Detector we had to construct the cornerness matrix 
+<div lang="latex"> R = det[\mu(\sigma_1,\sigma_D)] - \alpha[trace(\mu(\sigma_1,\sigma_D))^2] = g(I_x^2)g(I_y^2) - [g(I_xI_y)]^2 - \alpha[g(I_x^2)+g(I_y^2)]^2 </div> 
+Where g is gaussian filter and I_x, I_y are gradients in x and y directions respectively.
+Negative values of R represent the edges, big positives - corners, which we were mostly interested in identifying as corners could be considered most
+descriptive in an image, and zeros are flat regions. In order to extract the best possible points of interest, the first challenge was choosing the kernel
+for Gaussian filter, which in the end was chosen based on previous project of Image Filtering and by testing that would produce the best possible accuracy
+in final images matching. Second, was the question of threshold. Based on overall pipeline performance the 5% cut-off for R positive values was able to give
+the accuracy of over 90% for Notre Dame and Mount pictures.
+</p>
+<h3>ANMS</h3>
+<p> Of course points of interest, which could be considered keypoints candidates are those that have distinct features. The best way to perform such points
+extraction was Adaptive Non-maximal Compression or ANMS. It ensures that the keypoints chosen not only have good R values, but ensures that they don't have over
+keypoints around them in big enough radius for the features of the two not to intervine. The straightforward implementation was to find the least radius to the
+one of the closest points of interest with bigger R value for the current point, sort all the points by this radii and extract those with biggest values (most distinct ones).
+I have also experimented with the amount of keypoints chosen for best local feature matching performance, which turned out to be 1500 (1000 and 2000 performed poorer, giving accuracy
+of matching around 80% instead of 93% for 1500).
+</p>
+<h3>SIFT</h3>
+<p> To be able to match the keypoints of two images to each other we had extract the features with SIFT, by basically extracting the most possible information
+from each of the keypoints surroundings. The SIFT was executed according to Szelinski with only difference of choosing the final feature window width of 32
+ instead of 16, because it showed a better performance in describing keypoints and raise each element of the final feature vector to a power of 0.3 (I have tested all
+ powers between 0.1 and 0.9 with step 0.1 and chosen 0.3 for best accuracy), leaving out the keypoint orientation invariance.
+</p>
+<h3>Feature Matching</h3>
+<p>
+The feature matching was pretty straightforward out of all, first find the closest keypoint by using feature vectors to describe the distances. Then using NNDR resorting matched features
+from high to low confidence levels and extracting top 100 results.
+</p>
+
+<h3>Results in a table</h3>
+
+<table border=1>
+<tr>
+<td>
+<img src="vis_circles_nd.png" width="33%"/>
+<img src="vis_lines_nd.png"  width="33%"/>
+<img src="eval_nd.png" width="33%"/>
+</td>
+</tr>
+
+<tr>
+<td>
+<img src="vis_circles_mount.png" width="33%"/>
+<img src="vis_lines_mount.png"  width="33%"/>
+<img src="eval_mount.png" width="33%"/>
+</td>
+</tr>
+
+<tr>
+<td>
+<img src="vis_circles_gaudi.png" width="33%"/>
+<img src="vis_lines_gaudi.png"  width="33%"/>
+<img src="eval_gaudi.png" width="33%"/>
+</td>
+</tr>
+
+</table>
+
+<div style="clear:both" >
+<p> As it can be seen from the results table the best feature matching using the proposed pipeline can be achieved when images are:
+<li>Close in size (pictures 1 and 2), therefore rescaling doesn't affect the robustness of the features vectors for the keypoints</li>
+<li>Not rotated (pictures 1 and 2), which can be overcome by extracting the main orientations of keypoints based on their surroundings and
+substracting the main rotational direction from surrounding gradient vectors in SIFT (yet didn't prove to improve performance for cases 1 and 2, yet was
+able to slightly increase the accuracy for the third case, improving accuracy from 33% to 42%</li>
+<li>Images intensity, what is overcome by clipping and renormalizing the features vectors with a threshold of 0.2</li>
+Overall even with this simplistic implementation a good accuracy of 93% and 91% percents for Notre Dame and Mount Pictures were achieved.
+</p>
+
+<h2> Citations </h2>
+
+<p> <sup> 1 </sup> David G. Lowe, "Object recognition from local scale-invariant features," International Conference on Computer Vision, Corfu, Greece (September 1999), pp. 1150-1157. </p>
+<p> <sup> 2 </sup> Szeliski, R. (2011). Computer vision algorithms and applications. London: Springer. </p>
+<p> <sup> 3 </sup> James Hays, Computer Vision CS 6476 Fall 2018 slides </p>
+
+</div>
+</body>
+</html>
