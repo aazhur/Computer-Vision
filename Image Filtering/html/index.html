@@ -1,0 +1,315 @@
+<html>
+<head>
+<title>Computer Vision Project</title>
+<link href='http://fonts.googleapis.com/css?family=Nunito:300|Crimson+Text|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" title="Default" href="styles/github.css">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+
+<link rel="stylesheet" href="highlighting/styles/default.css">
+<script src="highlighting/highlight.pack.js"></script>
+
+<style type="text/css">
+body {
+	margin: 0px;
+	width: 100%;
+	font-family: 'Crimson Text', serif;
+	font-size: 20px;
+	background: #fcfcfc;
+}
+h1 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 28px;
+	margin: 25px 0px 0px 0px;
+	text-transform: lowercase;
+
+}
+
+h2 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 32px;
+	margin: 15px 0px 35px 0px;
+	color: #333;
+	word-spacing: 3px;
+}
+
+h3 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 26px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+h4 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 22px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+
+h5 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 18px;
+	margin: 10px 0px 10px 0px;
+	color: #111;
+	word-spacing: 2px;
+}
+
+p, li {
+	color: #444;
+}
+
+a {
+	color: #DE3737;
+}
+
+.container {
+	margin: 0px auto 0px auto;
+	width: 1160px;
+}
+
+#header {
+	background: #333;
+	width: 100%;
+}
+
+#headersub {
+	color: #ccc;
+	width: 960px;
+	margin: 0px auto 0px auto;
+	padding: 20px 0px 20px 0px;
+}
+
+.chart {
+	width: 480px;
+}
+.lol {
+	font-size: 16px;
+	color: #888;
+	font-style: italic;
+}
+.sep {
+	height: 1px;
+	width: 100%;
+	background: #999;
+	margin: 20px 0px 20px 0px;
+}
+.footer{
+	font-size: 16px;
+}
+.latex {
+	width: 100%;
+}
+
+.latex img {
+	display: block;
+	margin: 0px auto 0px auto;
+}
+
+pre {
+	font-family: 'Droid Sans Mono';
+	font-size: 14px;
+}
+
+table td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+table td img {
+  text-align: center;
+  vertical-align: middle;
+}
+
+#contents a {
+}
+</style>
+<script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+</script>
+</head>
+<body>
+<div id="header" >
+<div id="headersub">
+<h1>Anastasia Zhurikhina</h1>
+</div>
+</div>
+<div class="container">
+
+<h2>Project 4: Scene recognition with bag of words</h2>
+
+<div style="float: right; padding: 20px">
+<img src="4476_2016_class_easy.jpg">
+<p style="font-size: 14px">Example of face detection algorithm result.</p>
+</div>
+
+<p> For this project we had to create a simple sliding window detector based on Dalal and Triggs algorithm.
+This algorithm despite being straightforward actually shows a pretty good performance of around 83-84%
+accuracy of face detection, if tuned. The pipeline for the project ran the following way</p>
+
+<ol>
+<li>Get HoG features for two classes of images (faces and non-faces).</li>
+<li>Train the SVM classifier on the train set.</li>
+<li>Get False Positives from the trained SVM to retrain it for increased accuracy.</li>
+<li>Using trained SVM and sliding window on the test images evaluate performance.</li>
+<li>Repeat steps from 2nd to 4th until a good performance is reached (trying to reach the best possible given the variables).</li>
+<li>Make a final test on class pictures</li>
+</ol>
+
+<div style="clear:both">
+
+<h3>Geting HoG features and training SVM</h3>
+<p> For features describing the images we converted the to HoG features. In order to get the best performance with SVM, face
+images were loaded in gray, so that the color is not a factor in training, since the no face images
+were given in gray scale. No face images were cut out from training scenes without the faces,
+so that they match in size the face training data. The most important factor with Linear SVM training, though
+was C parameter. The data was fit with various Cs ranging from 1 to 0.001 (given in Table 1.) And from the performance
+results it can be concluded that the training set could be divided best with a straight line that doesn't represent
+maximum possible distance from both sets, yet given the test data (Table 2. and Fig. 1) best SVM performance was achieved
+with C value around 0.01 (the accuracy precision reached its peak value of 84% there)</p>
+
+<table border=0.1>
+
+<tr>
+<td>
+<img src="1.png" width="99%"/>
+</td>
+</tr>
+
+</table>
+
+<p> Another contributing factor in face detection performance and SVM training was emphasisizing false positives,
+or is they were called in our project hard negatives. As can be seen from figure 1 the inclusion of hard negatives (orange line)
+has a noticable performance improvement, when training SVM with small enough values, yet it actually performes slightly
+more poorly on C values over 0.1. It can indicate that false positives are indeed closely positioned to true positive data
+and the rightly chosen C inclination has allowed SVM to overcome this issue and increase accuracy, although not by much
+given the not so complex features used.</p>
+
+<table border=0.1>
+
+<tr>
+<td>
+<img src="2.png" width="49%"/>
+</td>
+</tr>
+
+</table>
+
+<h3>Sliding window detector</h3>
+
+<p> The sliding window detector was built in a couple of steps. In order to be able to detect the faces
+each image should've been converted to HoG and then the submatrices of HoG cell size squared were croped out
+of the 'HoG' images in order to get the prediction from the trained SVM and the top cut of images that passed the threshold
+were fed to NMS to later be evaluated as right or wrong face detections. Here the three important parameters played a major role.
+First, since faces in each image were of different size the given HoG cell size wouldn't work on images with too small or too big
+faces as they woouldn't fit in the area of HoG window nicely, so that the face could be detected. For that each image was evaluated with rescaling
+that ran from 1.0 to the smallest possible, so that the HoG features still could be extractred given the model parameters. As it can be seen
+from Table 3 choice of multiple rescaling does increase performance than a single chosen scaling factor for the reasons described above.
+Secondly, the threshold for scores considered to be positive detections comes into picture. As it can be seen from Table 1, when having small C (and
+in our scenario we chose 0.01 for best performance), the score that would most likely to detect a true positive should be around 1, but it would cut out
+other true positive detections, which in some cases may result in no face detections what so ever. Playin around with threshold the value of 0.05 was chosen,
+as values of 0.1, 0.3, 0.5 and 1 cut out any face predicitons for certain images. </p>
+
+<table border=0.1>
+
+<tr>
+<td>
+<img src="3.png" width="99%"/>
+</td>
+</tr>
+
+</table>
+
+<p> Lastly, another factor to affect overall performance was the decision of how many top detections to pass to NMS (which cleared out overlaps).
+This had the similar effect as threshold cuting out false positives along with true positives, if too little of a number was chosen.
+As can be seen from Table 2 the cut-offs of 15 to below 500 although producing less false positives also cuts out many
+true positives, as there are  a lot of images with tiny faces (Table 5.). It was tested that when taken 500 images of more
+the performance reaches a good value, which doesn't increase with the expansion of number of possible detections passed to NMS.</p>
+
+<table border=0.1>
+
+<tr>
+<td>
+<img src="4_1.png" width="99%"/>
+</td>
+</tr>
+
+<tr>
+<td>
+<img src="4_2.png" width="99%"/>
+</td>
+</tr>
+
+</table>
+
+<p> From Table 3 and Table 4 one can see the effects of C and inclusion or exclusion of false postives in SVM training set on performance.
+As discussed above the most optimal C obviously lay between 0.005 and 0.3 values (Figure 1), and the inclusion of hard negatives
+played its positive role on accuracy with Cs that showed the top performance in both scenarios (with and without hard negatives). </p>
+
+<table border=0.1>
+
+<tr>
+<td>
+<img src="5_1.png" width="99%"/>
+</td>
+</tr>
+
+<tr>
+<td>
+<img src="5_2.png" width="99%"/>
+</td>
+</tr>
+
+</table>
+
+<h2>Results in Tables</h2>
+
+<p> As can bee seen from Tables 5 and 6 given the good overall acuracy of face predictor that was achieved there are still some cases
+left undetected (last column, second row), as our features couldn't account for the face taking the whole picture as well as a vast white
+frame, that would've affected HoG converted image and as a result feature extraction negatively for possible face detection.</p>
+
+<table border=0.1>
+
+<tr>
+<td>
+<img src="6.png" width="99%"/>
+</td>
+</tr>
+
+</table>
+
+<p> There were also a lot of false positives in case of pictures with many small faces and prominent background elements.
+Since those faces would've been detected with images not resized much, it is only logical that a lot of other small cases
+of small crops with a non-flat HoG surace would've been dragged along the way, like folded fabric and heads turned back side (Table 6).
+Given that the detector performed extremly well in easy cases and pretty well in some hard cases (Table 6). </p>
+
+<table border=0.1>
+
+<tr>
+<td>
+<img src="7_1.png" width="99%"/>
+</td>
+</tr>
+
+<tr>
+<td>
+<img src="7_2.png" width="99%"/>
+</td>
+</tr>
+
+</table>
+
+<h2> Citations </h2>
+
+<p> <sup> 1 </sup> Dalal, N., Triggs, B., & Schmid, C. (2006). Human Detection Using Oriented Histograms of Flow and Appearance. Computer Vision – ECCV 2006 Lecture Notes in Computer Science, 428-441. doi:10.1007/11744047_33 </p>
+<p> <sup> 2 </sup> James Hays, Computer Vision CS 6476 Fall 2018 slides </p>
+<p> <sup> 3 </sup> Szeliski, R. (2011). Computer vision algorithms and applications. London: Springer. </p>
+
+<div style="clear:both" >
+</body>
+</html>
